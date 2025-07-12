@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songwriting Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            min-height: 500px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 1.1em;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 5px;
+            font-weight: bold;
+            color: #718096;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: #667eea;
+            color: white;
+            transform: scale(1.2);
+        }
+
+        .step.completed {
+            background: #48bb78;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 1.1em;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+            background: white;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .word-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .word-input input {
+            flex: 1;
+        }
+
+        .word-number {
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .matching-section {
+            margin-bottom: 30px;
+        }
+
+        .matching-item {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .matching-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .matching-item label {
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .summary-section {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-section h3 {
+            color: #4a5568;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .w-answers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .w-answer {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .w-answer strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .verb-noun-pairs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .pair {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e2e8f0;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .notes-section textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Songwriting Tool</h1>
+            <p>Let's create something beautiful together</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step active" id="step1">1</div>
+            <div class="step" id="step2">2</div>
+            <div class="step" id="step3">3</div>
+            <div class="step" id="step4">4</div>
+            <div class="step" id="step5">5</div>
+        </div>
+
+        <!-- Step 1: 5 W Questions -->
+        <div id="screen1" class="screen fade-in">
+            <h2 style="color: #4a5568; margin-bottom: 20px; text-align: center;">The 5 W's</h2>
+            <div class="form-group">
+                <label for="who">Who is this song about?</label>
+                <input type="text" id="who" placeholder="A person, character, or perspective...">
+            </div>
+            <div class="form-group">
+                <label for="what">What is happening in the song?</label>
+                <input type="text" id="what" placeholder="The main action, event, or theme...">
+            </div>
+            <div class="form-group">
+                <label for="why">Why is this story important?</label>
+                <input type="text" id="why" placeholder="The emotion, motivation, or message...">
+            </div>
+            <div class="form-group">
+                <label for="where">Where does this take place?</label>
+                <input type="text" id="where" placeholder="The setting, location, or atmosphere...">
+            </div>
+            <div class="form-group">
+                <label for="when">When does this happen?</label>
+                <input type="text" id="when" placeholder="Time period, season, or moment...">
+            </div>
+            <button class="btn" onclick="nextScreen(1)">Continue to Nouns</button>
+        </div>
+
+        <!-- Step 2: 5 Nouns -->
+        <div id="screen2" class="screen hidden">
+            <h2 style="color: #4a5568; margin-bottom: 20px; text-align: center;">Choose 5 Nouns</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: #718096;">Based on your 5 W's, what are 5 key nouns that come to mind?</p>
+            
+            <div class="word-input">
+                <div class="word-number">1</div>
+                <input type="text" id="noun1" placeholder="First noun...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">2</div>
+                <input type="text" id="noun2" placeholder="Second noun...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">3</div>
+                <input type="text" id="noun3" placeholder="Third noun...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">4</div>
+                <input type="text" id="noun4" placeholder="Fourth noun...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">5</div>
+                <input type="text" id="noun5" placeholder="Fifth noun...">
+            </div>
+            <button class="btn" onclick="nextScreen(2)">Continue to Verbs</button>
+        </div>
+
+        <!-- Step 3: 5 Verbs -->
+        <div id="screen3" class="screen hidden">
+            <h2 style="color: #4a5568; margin-bottom: 20px; text-align: center;">Choose 5 Verbs</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: #718096;">Now think of 5 action words that connect to your story.</p>
+            
+            <div class="word-input">
+                <div class="word-number">1</div>
+                <input type="text" id="verb1" placeholder="First verb...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">2</div>
+                <input type="text" id="verb2" placeholder="Second verb...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">3</div>
+                <input type="text" id="verb3" placeholder="Third verb...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">4</div>
+                <input type="text" id="verb4" placeholder="Fourth verb...">
+            </div>
+            <div class="word-input">
+                <div class="word-number">5</div>
+                <input type="text" id="verb5" placeholder="Fifth verb...">
+            </div>
+            <button class="btn" onclick="nextScreen(3)">Match Verbs & Nouns</button>
+        </div>
+
+        <!-- Step 4: Matching -->
+        <div id="screen4" class="screen hidden">
+            <h2 style="color: #4a5568; margin-bottom: 20px; text-align: center;">Match Your Words</h2>
+            <p style="text-align: center; margin-bottom: 30px; color: #718096;">Choose which noun goes with each verb to create powerful combinations.</p>
+            
+            <div id="matching-container">
+                <!-- Matching pairs will be generated here -->
+            </div>
+            <button class="btn" onclick="nextScreen(4)">Create Your Song Notes</button>
+        </div>
+
+        <!-- Step 5: Final Summary -->
+        <div id="screen5" class="screen hidden">
+            <h2 style="color: #4a5568; margin-bottom: 20px; text-align: center;">Your Song Foundation</h2>
+            
+            <div class="summary-section">
+                <h3>Your 5 W's</h3>
+                <div class="w-answers" id="w-summary">
+                    <!-- W answers will be populated here -->
+                </div>
+                
+                <h3>Your Verb-Noun Pairs</h3>
+                <div class="verb-noun-pairs" id="pairs-summary">
+                    <!-- Pairs will be populated here -->
+                </div>
+            </div>
+
+            <div class="notes-section">
+                <label for="song-notes">Start writing your song notes:</label>
+                <textarea id="song-notes" placeholder="Let your creativity flow... Use the words and concepts above to inspire your lyrics, melody ideas, or song structure..."></textarea>
+            </div>
+
+            <button class="btn" onclick="startOver()">Start New Song</button>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 1;
+        let wAnswers = {};
+        let nouns = [];
+        let verbs = [];
+        let pairs = {};
+
+        function nextScreen(from) {
+            if (from === 1) {
+                // Collect 5 W answers
+                wAnswers = {
+                    who: document.getElementById('who').value,
+                    what: document.getElementById('what').value,
+                    why: document.getElementById('why').value,
+                    where: document.getElementById('where').value,
+                    when: document.getElementById('when').value
+                };
+                
+                // Validate all fields are filled
+                if (Object.values(wAnswers).some(val => val.trim() === '')) {
+                    alert('Please fill in all the 5 W questions before continuing.');
+                    return;
+                }
+            } else if (from === 2) {
+                // Collect nouns
+                nouns = [];
+                for (let i = 1; i <= 5; i++) {
+                    const noun = document.getElementById(`noun${i}`).value.trim();
+                    if (noun === '') {
+                        alert('Please fill in all 5 nouns before continuing.');
+                        return;
+                    }
+                    nouns.push(noun);
+                }
+            } else if (from === 3) {
+                // Collect verbs
+                verbs = [];
+                for (let i = 1; i <= 5; i++) {
+                    const verb = document.getElementById(`verb${i}`).value.trim();
+                    if (verb === '') {
+                        alert('Please fill in all 5 verbs before continuing.');
+                        return;
+                    }
+                    verbs.push(verb);
+                }
+                generateMatching();
+            } else if (from === 4) {
+                // Collect pairs
+                pairs = {};
+                for (let i = 0; i < 5; i++) {
+                    const selectedNoun = document.getElementById(`match${i}`).value;
+                    if (selectedNoun === '') {
+                        alert('Please match all verbs with nouns before continuing.');
+                        return;
+                    }
+                    pairs[verbs[i]] = selectedNoun;
+                }
+                generateSummary();
+            }
+
+            // Hide current screen
+            document.getElementById(`screen${currentScreen}`).classList.add('hidden');
+            document.getElementById(`step${currentScreen}`).classList.remove('active');
+            document.getElementById(`step${currentScreen}`).classList.add('completed');
+
+            // Show next screen
+            currentScreen++;
+            document.getElementById(`screen${currentScreen}`).classList.remove('hidden');
+            document.getElementById(`screen${currentScreen}`).classList.add('fade-in');
+            document.getElementById(`step${currentScreen}`).classList.add('active');
+        }
+
+        function generateMatching() {
+            const container = document.getElementById('matching-container');
+            container.innerHTML = '';
+
+            verbs.forEach((verb, index) => {
+                const matchingDiv = document.createElement('div');
+                matchingDiv.className = 'matching-item';
+                
+                const label = document.createElement('label');
+                label.textContent = `What noun goes with "${verb}"?`;
+                
+                const select = document.createElement('select');
+                select.id = `match${index}`;
+                
+                // Add empty option
+                const emptyOption = document.createElement('option');
+                emptyOption.value = '';
+                emptyOption.textContent = 'Choose a noun...';
+                select.appendChild(emptyOption);
+                
+                // Add all nouns as options
+                nouns.forEach(noun => {
+                    const option = document.createElement('option');
+                    option.value = noun;
+                    option.textContent = noun;
+                    select.appendChild(option);
+                });
+                
+                matchingDiv.appendChild(label);
+                matchingDiv.appendChild(select);
+                container.appendChild(matchingDiv);
+            });
+        }
+
+        function generateSummary() {
+            // Generate W answers summary
+            const wSummary = document.getElementById('w-summary');
+            wSummary.innerHTML = '';
+            
+            const wLabels = {
+                who: 'Who',
+                what: 'What',
+                why: 'Why',
+                where: 'Where',
+                when: 'When'
+            };
+            
+            Object.entries(wAnswers).forEach(([key, value]) => {
+                const div = document.createElement('div');
+                div.className = 'w-answer';
+                div.innerHTML = `<strong>${wLabels[key]}:</strong> ${value}`;
+                wSummary.appendChild(div);
+            });
+            
+            // Generate pairs summary
+            const pairsSummary = document.getElementById('pairs-summary');
+            pairsSummary.innerHTML = '';
+            
+            Object.entries(pairs).forEach(([verb, noun]) => {
+                const div = document.createElement('div');
+                div.className = 'pair';
+                div.textContent = `${verb} + ${noun}`;
+                pairsSummary.appendChild(div);
+            });
+        }
+
+        function startOver() {
+            currentScreen = 1;
+            wAnswers = {};
+            nouns = [];
+            verbs = [];
+            pairs = {};
+            
+            // Reset all forms
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset steps
+            document.querySelectorAll('.step').forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index === 0) step.classList.add('active');
+            });
+            
+            // Show first screen
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            document.getElementById('screen1').classList.remove('hidden');
+            document.getElementById('screen1').classList.add('fade-in');
+        }
+    </script>
+</body>
+</html>
